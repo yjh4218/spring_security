@@ -18,6 +18,8 @@ import com.cos.security1.repository.UserRepository;
  *  @Service를 하면 자동으로 PrincipalDetailsServicedl IoC에 등록됨
  *  로그인을 진행할 경우 아이디를 찾으면 UserDetails로 찾은 값을 반환함.
  *  이 때 PrincipalDetails 생성자를 통해 찾은 값을 저장 후 세션으로 등록함
+ *  
+ *  PrincipalDetails을 반환하기 위해 사용(PrincipalDetails을 이용해 일반, OAuth 로그인의 세션을 편히 관리하기 위함)
  */
 
 @Service
@@ -28,6 +30,8 @@ public class PrincipalDetailsService implements UserDetailsService{
 	
 	
 	// 시큐리티 Session = Authtication = UserDetails
+	// 시큐리티 Session(내부 Authtication(내부 UserDetails))
+	// 함수 종료시 @AuthenticationPrincipal 어노테이션이 만들어진다.
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 

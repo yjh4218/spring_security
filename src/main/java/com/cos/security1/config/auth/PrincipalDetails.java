@@ -2,9 +2,11 @@ package com.cos.security1.config.auth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.cos.security1.model.User;
 
@@ -21,18 +23,31 @@ import lombok.Data;
  * Authentication 안에 User 정보가 있어야 함
  * User 오브젝트 타입은 UserDetails 타입 객체로 들어와야 함
  * 
- * Security Session 영역에는 Authentication 객체만 들어갈 수 있으며, Authentication에는 UserDeatails 객체가 들어감
+ * Security Session 영역에는 Authentication 객체만 들어갈 수 있으며, Authentication에는 UserDeatails, OAuth2User 객체가 들어감
  * 
- * UserDetails에 PrincipalDetails를 넣음으로서 PrincipalDetails을 Authentication에 전달할 수 있음
+ * PrincipalDetails에 UserDetails, OAuth2User를 넣음으로서 PrincipalDetails을 Authentication에 전달할 수 있음
+ * 
+ * 
  */
 
 @Data
-public class PrincipalDetails implements UserDetails{
+public class PrincipalDetails implements UserDetails, OAuth2User{
 
+	//UserDetails와 OAuth2User는 User Object가 없음.
+	//이에 implement 함으로서 PrincipalDetails는 UserDetails와 OAuth2User, User를 갖고 시큐리티 세션(Authentication)에 접근 함.
 	private User user; //콤포지션
 	
+	private Map<String, Object> attributes;
+	
+	//일반 로그인시 사용하는 생성자
 	public PrincipalDetails(User user) {
 		this.user = user;
+	}
+	
+	//OAuth 로그인시 사용하는 생성자
+	public PrincipalDetails(User user, Map<String, Object> attributes) {
+		this.user = user;
+		this.attributes = attributes;
 	}
 	
 	
@@ -94,6 +109,21 @@ public class PrincipalDetails implements UserDetails{
 		// 현재시간-로그인시간으로 계산해서 1년 초과하면 return false로 설정
 		
 		return true;
+	}
+
+
+	//OAuth2User로 로그인할 경우 전달받은 데이터를 저장함
+	@Override
+	public Map<String, Object> getAttributes() {
+		// TODO Auto-generated method stub
+		return attributes;
+	}
+
+	//OAuth2User
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

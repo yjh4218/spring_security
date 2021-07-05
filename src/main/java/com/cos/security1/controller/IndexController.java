@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,6 +52,14 @@ public class IndexController {
 	 * @AuthenticationPrincipal UserDetails userDetails 
 	 * -> @AuthenticationPrincipal PrincipalDetails userDetails 로 해도 됨
 	 * UserDetails에 PrincipalDetails가 implement 되어 있기 때문
+	 * 
+	 * 
+	 * 시큐리티 세션에는 Authentication의 객체만 들어갈 수 있음
+	 * Authentication에는 UserDetails 타입과 OAuth2User 타입만 들어갈 수 있음
+	 * UserDetail은 일반 로그인 OAuth2User는 구글, 페이스북 등의 로그인에 사용
+	 * 유저가 어떤 로그인을 할지 모르기 때문에 복잡해짐.
+	 * 따라서 PrincipalDetails를 부모로 설정하여 UserDetails와 OAuth2User을 implement 하면 됨(자식) 
+	 * 이렇게 되면 언제 어디서나 PrincipalDetails로 로그인하면 문제 없음.
 	 */
 	@GetMapping("/test/login")
 	public @ResponseBody String loginTest(Authentication authentication,
@@ -58,11 +67,24 @@ public class IndexController {
 		System.out.println("/test/login =====================");
 		
 		// 1번 방법
+		// 원래 UserDetails로 다운캐스팅 해야하나, PrincipalDetails을 UserDetails 를 갖고 있음
 		PrincipalDetails principalDetails = (PrincipalDetails)authentication.getPrincipal();
 		
 		System.out.println("authentication : " + principalDetails.getUser());
 		System.out.println("userDetails : " + userDetails.getUsername());
 		return "세션정보 확인하기";
+	}
+	
+	@GetMapping("/test/oauth/login")
+	public @ResponseBody String loginOauthTest(Authentication authentication,
+			@AuthenticationPrincipal OAuth2User oauth) { 
+		System.out.println("/test/login =====================");
+		
+		OAuth2User oauthUser = (OAuth2User)authentication.getPrincipal();
+		
+		System.out.println("authentication : " + oauthUser.getAttributes());
+		System.out.println("oAuth2User : " + oauth.getAttributes());
+		return "OAuth 세션정보 확인하기";
 	}
 	
 	
@@ -74,8 +96,12 @@ public class IndexController {
 		return "index";
 	}
 
+	//OAuth 로그인을 해도 PrincipalDetails로 받을 수 있음
+	//일반 로그인을 해도 PrincipalDetails로 받을 수 있음
+	//@AuthenticationPrincipal은 
 	@GetMapping("/user")
-	public String user() {
+	public String user(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+		System.out.println("principalDetails : " + principalDetails.getUser());
 		return "user";
 	}
 
